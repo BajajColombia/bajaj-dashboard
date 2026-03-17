@@ -533,14 +533,15 @@ async function loadPremios() {
   try {
     if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
     const data = await fetchSheet('premios');
-    // Usar siempre los datos frescos de Sheets — nunca el fallback hardcodeado
-    if (!data.grupos || !data.grupos.length) throw new Error('Sin grupos en la hoja');
+    if (!data.grupos || !data.grupos.length) throw new Error('Sin grupos');
     renderPremios(data.grupos);
   } catch (e) {
-    if (e.message === 'NO_URL') { showUrlPrompt('premios-wrap'); }
-    else {
-      console.warn('Premios fallback (datos locales):', e.message);
-      renderPremios(GRUPOS_PREMIOS); // Solo si falla la red
+    if (e.message === 'NO_URL') {
+      showUrlPrompt('premios-wrap');
+    } else {
+      document.getElementById('premios-wrap').innerHTML =
+        `<div class="err"><strong>Error al cargar premios:</strong> ${e.message}<br>
+         <button class="refresh-btn" onclick="loadPremios()">↻ Reintentar</button></div>`;
     }
   }
 }
