@@ -342,22 +342,14 @@ function getTier(pts) {
   return            {l:'Élite',   c:'t5'};
 }
 
-// ─── Google Viz API (permite CORS cross-origin en hojas públicas) ─────────────
-function gvizURL(gid) {
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
-}
-function parseGviz(text) {
-  return JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
-}
-function gvizToRows(data) {
-  const cols = data.table.cols || [];
-  return (data.table.rows || []).map(row =>
-    (row.c || []).map((cell, i) => {
-      if (!cell || cell.v === null || cell.v === undefined) return '';
-      if (cols[i] && cols[i].type === 'number') return String(cell.v);
-      return cell.f ? String(cell.f) : String(cell.v);
-    })
-  );
+// ─── URL del Apps Script (reemplaza con tu URL después de implementar) ───────
+// INSTRUCCIÓN: Cambia esta URL por la que te da Google Apps Script al implementar
+let APPS_SCRIPT_URL = localStorage.getItem('bajaj_script_url') || '';
+
+function setScriptURL(url) {
+  APPS_SCRIPT_URL = url.trim();
+  localStorage.setItem('bajaj_script_url', APPS_SCRIPT_URL);
+  loadAll();
 }
 
 // ─── PREMIOS — parseo desde Sheets y merge con estructura de grupos ───────────
@@ -472,47 +464,60 @@ function renderPremios(grupos) {
   document.getElementById('premios-wrap').innerHTML = html;
 }
 
-// ─── Fetch con múltiples proxies CORS ───────────────────────────────────────
-async function fetchData(url) {
-  const proxies = [
-    url,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  ];
-  for (const src of proxies) {
-    try {
-      const res = await fetch(src, { mode: 'cors' });
-      if (res.ok) return res;
-    } catch (e) { /* siguiente proxy */ }
+// ─── Fetch desde Apps Script (sin problemas de CORS) ────────────────────────
+async function fetchSheet(sheet) {
+  if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
+  const url = `${APPS_SCRIPT_URL}?sheet=${sheet}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+function showUrlPrompt(wrap) {
+  document.getElementById(wrap).innerHTML = `
+    <div style="background:#FFF8F0;border:1px solid #FED7AA;border-radius:10px;padding:20px;font-size:13px;color:#92400E;line-height:1.8">
+      <strong style="font-size:14px">⚙️ Configura tu Apps Script</strong><br><br>
+      Para conectar el dashboard en vivo, sigue estos pasos:<br>
+      <ol style="padding-left:18px;margin-top:8px;color:#555">
+        <li>Abre tu Google Sheets → <strong>Extensiones → Apps Script</strong></li>
+        <li>Pega el código del archivo <code>apps_script.gs</code> que descargaste</li>
+        <li>Clic en <strong>Implementar → Nueva implementación</strong></li>
+        <li>Tipo: <em>Aplicación web</em> · Acceso: <em>Cualquier persona</em></li>
+        <li>Copia la URL que aparece y pégala aquí abajo:</li>
+      </ol>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+        <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/..." 
+          style="flex:1;border:.5px solid #DDD;border-radius:6px;padding:8px 12px;font-size:13px;outline:none">
+        <button onclick="saveUrl()" style="background:#E30613;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">Guardar</button>
+      </div>
+    </div>`;
+}
+
+function saveUrl() {
+  const url = document.getElementById('script-url-input').value.trim();
+  if (!url.includes('script.google.com')) {
+    alert('Por favor pega una URL válida de Google Apps Script');
+    return;
   }
-  throw new Error('No se pudo conectar con Google Sheets. Verifica tu conexión a internet.');
+  setScriptURL(url);
 }
 
 async function loadPremios() {
   document.getElementById('premios-wrap').innerHTML =
     '<div class="spin-wrap"><div class="spinner"></div>Cargando premios...</div>';
-
-  const URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRGKrlMk9Bggu6Arz8RKPbGO2BwwfaNzqZ6mPvrLxF7-AePfB__GLGr56XCjUNCg/pub?gid=1429232577&single=true&output=csv';
-
   try {
-    const res  = await fetchData(URL_CSV);
-    const text = await res.text();
-    const rows = text.trim().split('\n').map(line => {
-      const cells = []; let cur = '', inQ = false;
-      for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (c === '"') { inQ = !inQ; continue; }
-        if (c === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
-        else cur += c;
-      }
-      cells.push(cur.trim());
-      return cells;
-    });
-    const grupos = buildPremiosFromSheet(rows);
+    if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
+    const data   = await fetchSheet('premios');
+    const grupos = data.grupos && data.grupos.length ? data.grupos : GRUPOS_PREMIOS;
     renderPremios(grupos);
   } catch (e) {
-    console.warn('Premios fallback (datos locales):', e.message);
-    renderPremios(GRUPOS_PREMIOS);
+    if (e.message === 'NO_URL') { showUrlPrompt('premios-wrap'); }
+    else {
+      console.warn('Premios fallback:', e.message);
+      renderPremios(GRUPOS_PREMIOS);
+    }
   }
 }
 
@@ -597,42 +602,18 @@ function filterEmb(q) {
 async function loadPuntajes() {
   document.getElementById('puntajes-wrap').innerHTML =
     '<div class="spin-wrap"><div class="spinner"></div>Cargando puntajes...</div>';
-
-  const URL_TSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRGKrlMk9Bggu6Arz8RKPbGO2BwwfaNzqZ6mPvrLxF7-AePfB__GLGr56XCjUNCg/pub?gid=1497084437&single=true&output=tsv';
-
   try {
-    const res  = await fetchData(URL_TSV);
-    const text = await res.text();
-
-    // Fila 0: encabezado de meses | Fila 1: subcolumnas + "Total" al final | Fila 2+: datos
-    const rows      = text.trim().split('\n').map(line => line.split('\t').map(c => c.trim()));
-    const headerRow = rows[1] || rows[0] || [];
-    const lastCol   = headerRow.length - 1;
-
-    // Buscar columna "Total" de derecha a izquierda
-    let totalCol = lastCol;
-    for (let i = lastCol; i >= 0; i--) {
-      if ((headerRow[i] || '').toLowerCase().includes('total')) { totalCol = i; break; }
-    }
-
-    const embajadores = [];
-    for (let i = 2; i < rows.length; i++) {
-      const row  = rows[i];
-      const name = (row[0] || '').trim();
-      if (!name || name.length < 2) continue;
-      const low = name.toLowerCase();
-      if (['total','promedio','nombre','embajador','suma'].includes(low)) continue;
-      const pts = parseFloat((row[totalCol] || '').replace(/[^0-9.-]/g, '')) || 0;
-      embajadores.push({ name, pts });
-    }
-
-    if (!embajadores.length) throw new Error('No se encontraron filas de embajadores');
-    renderPuntajes(embajadores);
-
+    if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
+    const data = await fetchSheet('puntajes');
+    if (!data.embajadores || !data.embajadores.length) throw new Error('Sin datos');
+    renderPuntajes(data.embajadores);
   } catch (e) {
-    document.getElementById('puntajes-wrap').innerHTML =
-      `<div class="err"><strong>Error al cargar puntajes:</strong> ${e.message}<br>
-       <button class="refresh-btn" onclick="loadPuntajes()">↻ Reintentar</button></div>`;
+    if (e.message === 'NO_URL') { showUrlPrompt('puntajes-wrap'); }
+    else {
+      document.getElementById('puntajes-wrap').innerHTML =
+        `<div class="err"><strong>Error:</strong> ${e.message}<br>
+         <button class="refresh-btn" onclick="loadPuntajes()">↻ Reintentar</button></div>`;
+    }
   }
 }
 
