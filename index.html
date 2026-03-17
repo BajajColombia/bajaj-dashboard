@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embajadores Bajaj 2026 · Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --red: #E30613;
+    --dark: #1A1A1A;
+    --light: #F7F7F7;
+    --border: #E8E8E8;
+  }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: #F0F0F0;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .wrapper { max-width: 1100px; margin: 0 auto; }
+
+  /* ── HEADER ── */
+  .hdr {
+    background: var(--red);
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 2px 12px rgba(227,6,19,.25);
+  }
+  .logo {
+    width: 48px; height: 48px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 22px; color: var(--red);
+    flex-shrink: 0;
+  }
+  .hdr-text h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 24px; color: #fff; letter-spacing: .5px;
+  }
+  .hdr-text p { font-size: 13px; color: rgba(255,255,255,.72); margin-top: 2px; }
+  .hdr-right { margin-left: auto; text-align: right; }
+  .hdr-right .ts { font-size: 11px; color: rgba(255,255,255,.6); }
+  .live {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 11px; color: #fff; margin-top: 5px;
+  }
+  .dot {
+    width: 7px; height: 7px; background: #4ADE80;
+    border-radius: 50%; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ── TABS ── */
+  .tabs {
+    background: #fff;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    border-left: .5px solid var(--border);
+    border-right: .5px solid var(--border);
+  }
+  .tab {
+    padding: 0 22px; height: 46px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 500; color: #999;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all .2s; white-space: nowrap;
+  }
+  .tab:hover { color: var(--red); }
+  .tab.active { color: var(--red); border-bottom-color: var(--red); font-weight: 600; }
+  .tab svg { opacity: .5; }
+  .tab.active svg { opacity: 1; }
+
+  /* ── CONTENT ── */
+  .content {
+    background: #fff;
+    border: .5px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.06);
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+  .sc {
+    background: #F9F9F9; border: .5px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .sc .lbl { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .sc .val { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; color: var(--dark); line-height: 1.1; }
+  .sc .val small { font-size: 13px; font-weight: 400; color: #AAA; margin-left: 4px; font-family: 'Barlow', sans-serif; }
+  .sc.red { background: var(--red); border-color: var(--red); }
+  .sc.red .lbl { color: rgba(255,255,255,.72); }
+  .sc.red .val { color: #fff; font-size: 15px; line-height: 1.3; }
+
+  /* ── SECTION TITLE ── */
+  .stitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 16px; color: var(--dark);
+    letter-spacing: .3px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stitle::before {
+    content: ''; display: block;
+    width: 4px; height: 18px; background: var(--red); border-radius: 2px;
+  }
+
+  /* ── PREMIOS TABLE ── */
+  .premios-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .premios-table thead th {
+    background: var(--dark); color: #fff;
+    text-align: left; padding: 10px 14px;
+    font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .premios-table thead th:first-child { border-radius: 8px 0 0 0; }
+  .premios-table thead th:last-child  { border-radius: 0 8px 0 0; }
+  .premios-table tbody td {
+    padding: 9px 14px;
+    border-bottom: .5px solid #F2F2F2;
+    color: #333; vertical-align: middle;
+  }
+  .premios-table tbody tr:last-child td { border-bottom: none; }
+  .premios-table tbody tr:hover td { background: #FFF5F5; }
+
+  /* Grupo de premios — fila de puntos */
+  .group-header td {
+    background: #FFF0F0 !important;
+    font-weight: 700 !important;
+    color: var(--red) !important;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px !important;
+    letter-spacing: .3px;
+    border-top: 2px solid #FECACA !important;
+  }
+  .group-header:first-child td { border-top: none !important; }
+
+  .badge-pts {
+    display: inline-block; background: var(--red); color: #fff;
+    border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  .badge-gray {
+    display: inline-block; background: #EBEBEB; color: #999;
+    border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600;
+  }
+  .tier-chip { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .t1{background:#FFF0E0;color:#C85A00} .t2{background:#FFF3CD;color:#856404}
+  .t3{background:#E3F6EC;color:#15622C} .t4{background:#E8F0FE;color:#1A56DB} .t5{background:#F0EDFF;color:#5B21B6}
+
+  /* Celda unidades — rowspan visual */
+  .units-cell {
+    text-align: center; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px; font-weight: 700; color: var(--red);
+    background: #FFF8F8;
+    border-left: 2px solid #FECACA !important;
+    vertical-align: middle !important;
+  }
+  .units-cell .units-lbl { font-size: 11px; color: #AAA; font-family: 'Barlow', sans-serif; font-weight: 400; display: block; margin-top: 1px; }
+
+  /* bar fill */
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar-t { width: 60px; height: 5px; background: #F0F0F0; border-radius: 3px; overflow: hidden; }
+  .bar-f { height: 100%; background: var(--red); border-radius: 3px; }
+
+  /* ── PODIUM ── */
+  .podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .pc { border-radius: 12px; padding: 16px; text-align: center; border: .5px solid #EEE; }
+  .pc.gold   { background: linear-gradient(135deg,#FFFAE0,#FFF0A0); border-color: #E8C000; }
+  .pc.silver { background: linear-gradient(135deg,#F8F8F8,#E8E8E8); border-color: #C0C0C0; }
+  .pc.bronze { background: linear-gradient(135deg,#FFF0E8,#FFDDB0); border-color: #CD7F32; }
+  .pc-medal { font-size: 26px; margin-bottom: 6px; }
+  .pc-name  { font-weight: 700; font-size: 15px; color: #1A1A1A; }
+  .pc-sub   { font-size: 12px; color: #999; margin-top: 3px; }
+  .pc-pts   { font-family: 'Barlow Condensed', sans-serif; font-size: 30px; font-weight: 700; color: var(--red); margin-top: 6px; }
+  .pc-pts small { font-size: 13px; font-weight: 400; color: #999; font-family: 'Barlow', sans-serif; }
+
+  /* ── LEADERBOARD ── */
+  .search-box { margin-bottom: 14px; }
+  .search-box input {
+    border: .5px solid #DDD; border-radius: 7px;
+    padding: 8px 13px; font-size: 13px; width: 240px;
+    outline: none; font-family: 'Barlow', sans-serif;
+    transition: border-color .2s;
+  }
+  .search-box input:focus { border-color: var(--red); }
+  .ldr-list { display: flex; flex-direction: column; gap: 8px; }
+  .ldr {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border: .5px solid #EEE;
+    border-radius: 10px; transition: all .15s;
+  }
+  .ldr:hover { border-color: var(--red); background: #FFF8F8; }
+  .rank {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .r1{background:#FFD700;color:#7A5900} .r2{background:#C0C0C0;color:#444}
+  .r3{background:#CD7F32;color:#fff}    .rn{background:#F0F0F0;color:#999}
+  .ldr-info { flex: 1; }
+  .ldr-name { font-weight: 600; font-size: 14px; color: #1A1A1A; }
+  .ldr-meta { font-size: 12px; color: #AAA; margin-top: 2px; }
+  .prog-wrap { width: 120px; flex-shrink: 0; }
+  .prog-lbl  { font-size: 10px; color: #BBB; text-align: right; margin-bottom: 3px; }
+  .prog-bar  { height: 5px; background: #F0F0F0; border-radius: 3px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--red); border-radius: 3px; }
+  .pts-num {
+    width: 80px; text-align: right;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--red);
+  }
+  .pts-num small { font-size: 11px; color: #BBB; font-family: 'Barlow', sans-serif; font-weight: 400; display: block; }
+
+  /* ── ESTADOS ── */
+  .spin-wrap { padding: 48px; text-align: center; color: #999; font-size: 14px; }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #EEE; border-top-color: var(--red);
+    border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .err {
+    background: #FFF5F5; border: 1px solid #FECACA;
+    border-radius: 8px; padding: 16px; font-size: 13px; color: #B91C1C; margin: 10px 0;
+    line-height: 1.7;
+  }
+  .refresh-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--red); color: #fff; border: none;
+    border-radius: 7px; padding: 8px 16px;
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px;
+    font-family: 'Barlow', sans-serif;
+  }
+  .refresh-btn:hover { background: #c00510; }
+
+  @media (max-width: 680px) {
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+    .podium { grid-template-columns: 1fr; }
+    .hdr { flex-wrap: wrap; }
+    .hdr-right { margin-left: 0; width: 100%; text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo">BJ</div>
+    <div class="hdr-text">
+      <h1>EMBAJADORES BAJAJ 2026</h1>
+      <p>Dashboard de Premios y Puntajes</p>
+    </div>
+    <div class="hdr-right">
+      <div class="ts" id="ts">—</div>
+      <div class="live"><span class="dot"></span>Google Sheets · En vivo</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('premios')">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1l2 4 4.5.6-3.2 3.1.8 4.5L8 11l-4 2.2.8-4.5L1.5 5.6 6 5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      Tabla de Premios
+    </div>
+    <div class="tab" onclick="switchTab('puntajes')">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="6" width="5" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/></svg>
+      Puntaje Embajadores
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- TAB PREMIOS -->
+    <div id="tab-premios">
+      <div class="stats-row">
+        <div class="sc"><div class="lbl">Total premios</div><div class="val" id="s-tot">—</div></div>
+        <div class="sc"><div class="lbl">Grupos de premios</div><div class="val" id="s-grupos">—</div></div>
+        <div class="sc"><div class="lbl">Puntos mínimos</div><div class="val" id="s-min">—</div></div>
+        <div class="sc red"><div class="lbl">Premio máximo</div><div class="val" id="s-max">—</div></div>
+      </div>
+      <div class="stitle">Catálogo de Premios por Grupo</div>
+      <div id="premios-wrap"><div class="spin-wrap"><div class="spinner"></div>Cargando premios desde Google Sheets...</div></div>
+    </div>
+
+    <!-- TAB PUNTAJES -->
+    <div id="tab-puntajes" style="display:none">
+      <div class="stats-row">
+        <div class="sc"><div class="lbl">Embajadores</div><div class="val" id="p-tot">—</div></div>
+        <div class="sc"><div class="lbl">Líder actual</div><div class="val" id="p-ldr" style="font-size:16px">—</div></div>
+        <div class="sc"><div class="lbl">Promedio pts</div><div class="val" id="p-avg">—</div></div>
+        <div class="sc red"><div class="lbl">Puntos totales</div><div class="val" id="p-sum">—</div></div>
+      </div>
+      <div id="puntajes-wrap"><div class="spin-wrap"><div class="spinner"></div>Cargando puntajes desde Google Sheets...</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── Configuración ────────────────────────────────────────────────────────────
+const SHEET_ID     = '1JhYc4QQQxijaojPoTzF0xSm953eDCQ_U';
+const GID_PREMIOS  = '1429232577';
+const GID_PUNTAJES = '1497084437';
+
+// Estructura de grupos según imagen confirmada
+// Cada grupo: { pts, units, prizes[] }
+const GRUPOS_PREMIOS = [
+  { pts: 80,   units: 20, prizes: ['Bono regalo $100.000'] },
+  { pts: 120,  units: 15, prizes: ['Canguro','Guantes','Comfort Seat','Morral','Piernera','Cortavientos'] },
+  { pts: 150,  units: 10, prizes: ['Dry Bag','Crash Bags'] },
+  { pts: 200,  units: 8,  prizes: ['Bono regalo $300.000'] },
+  { pts: 300,  units: 4,  prizes: ['Curso de Técnicas Avanzadas de Conducción'] },
+  { pts: 300,  units: 5,  prizes: ['Chaqueta Buzo con Protecciones','Coderas / Rodilleras','Impermeable','Intercomunicador X1','Casco gama media','Maletero Tomcat 44Lt ovalado'] },
+  { pts: 400,  units: 3,  prizes: ['Casco alta gama','Maletero rígido de aluminio','Chaqueta con protecciones','Juego de exploradores','Botas casuales para motociclista'] },
+  { pts: 800,  units: 2,  prizes: ['GoPro','Carplay'] },
+  { pts: 1000, units: 1,  prizes: ['Cámara Insta 360'] },
+  { pts: 1200, units: 1,  prizes: ['Drone DJI Mini 4K'] },
+  { pts: 1500, units: 1,  prizes: ['Premio Máximo: Pulsar P150'] },
+];
+
+function getTier(pts) {
+  if (!pts) return {l:'—', c:''};
+  if (pts <= 120)  return {l:'Bronce',  c:'t1'};
+  if (pts <= 200)  return {l:'Plata',   c:'t2'};
+  if (pts <= 400)  return {l:'Oro',     c:'t3'};
+  if (pts <= 800)  return {l:'Platino', c:'t4'};
+  return            {l:'Élite',   c:'t5'};
+}
+
+// ─── Google Viz API (permite CORS cross-origin en hojas públicas) ─────────────
+function gvizURL(gid) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+}
+function parseGviz(text) {
+  return JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
+}
+function gvizToRows(data) {
+  const cols = data.table.cols || [];
+  return (data.table.rows || []).map(row =>
+    (row.c || []).map((cell, i) => {
+      if (!cell || cell.v === null || cell.v === undefined) return '';
+      if (cols[i] && cols[i].type === 'number') return String(cell.v);
+      return cell.f ? String(cell.f) : String(cell.v);
+    })
+  );
+}
+
+// ─── PREMIOS — parseo desde Sheets y merge con estructura de grupos ───────────
+function buildPremiosFromSheet(rows) {
+  // Intentar leer puntos y unidades actualizados desde la hoja
+  // y mapearlos sobre la estructura de grupos confirmada
+  const sheetData = {}; // pts -> { units, prizes[] }
+  let hIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 8); i++) {
+    if (rows[i].some(c => c.toLowerCase().includes('premio') || c.toLowerCase().includes('puntos'))) {
+      hIdx = i; break;
+    }
+  }
+  const start = hIdx >= 0 ? hIdx + 1 : 0;
+  for (let i = start; i < rows.length; i++) {
+    const row = rows[i];
+    const name = (row[0] || row[1] || '').trim();
+    if (!name || name.length < 2) continue;
+    const skip = ['premio','puntos','total','unidades','requeridos','disponibles'];
+    if (skip.some(s => name.toLowerCase() === s)) continue;
+    // Buscar número de puntos y unidades en la fila
+    let pts = null, units = null;
+    for (let j = 1; j < row.length; j++) {
+      const n = parseFloat((row[j]||'').replace(/[^0-9.]/g,''));
+      if (!isNaN(n) && n > 0) {
+        if (!pts) pts = n;
+        else if (!units) units = n;
+      }
+    }
+    if (pts) {
+      if (!sheetData[pts]) sheetData[pts] = { units: null, prizes: [] };
+      sheetData[pts].prizes.push(name);
+      if (units && !sheetData[pts].units) sheetData[pts].units = units;
+    }
+  }
+
+  // Merge: preferir datos de la hoja si existen, si no usar fallback
+  return GRUPOS_PREMIOS.map(g => {
+    const sd = sheetData[g.pts];
+    return {
+      pts:    g.pts,
+      units:  (sd && sd.units) ? sd.units : g.units,
+      prizes: (sd && sd.prizes.length) ? sd.prizes : g.prizes,
+    };
+  });
+}
+
+function renderPremios(grupos) {
+  const totalPremios = grupos.reduce((a, g) => a + g.prizes.length, 0);
+  const totalUnits   = grupos.reduce((a, g) => a + g.units, 0);
+  const minPts       = grupos[0].pts;
+  const topGrupo     = grupos[grupos.length - 1];
+
+  document.getElementById('s-tot').textContent    = totalPremios;
+  document.getElementById('s-grupos').textContent = grupos.length;
+  document.getElementById('s-min').innerHTML      = `${minPts} <small>pts</small>`;
+  document.getElementById('s-max').textContent    = topGrupo.prizes[0].replace(/^Premio Máximo:\s*/i, '');
+
+  const maxUnits = Math.max(...grupos.map(g => g.units));
+
+  let html = `<table class="premios-table">
+    <thead><tr>
+      <th>Premio</th>
+      <th>Puntos requeridos</th>
+      <th>Nivel</th>
+      <th style="text-align:center">Unidades disponibles</th>
+    </tr></thead>
+    <tbody>`;
+
+  grupos.forEach(g => {
+    const tier = getTier(g.pts);
+    const pct  = Math.round(g.units / maxUnits * 100);
+
+    g.prizes.forEach((prize, idx) => {
+      const isFirst = idx === 0;
+      const isLast  = idx === g.prizes.length - 1;
+
+      // Fila separadora de grupo (solo en la primera fila del grupo)
+      if (isFirst) {
+        html += `<tr class="group-header">
+          <td colspan="3">
+            <span class="badge-pts">${g.pts} pts</span>
+            <span style="color:#999;font-size:12px;font-weight:400;margin-left:8px;font-family:'Barlow',sans-serif">
+              — ${g.prizes.length} premio${g.prizes.length > 1 ? 's' : ''} en este grupo
+            </span>
+          </td>
+          <td style="text-align:center;background:#FFF0F0">
+            <div class="bar-wrap" style="justify-content:center">
+              <div class="bar-t"><div class="bar-f" style="width:${pct}%"></div></div>
+            </div>
+          </td>
+        </tr>`;
+      }
+
+      html += `<tr>
+        <td style="font-weight:500;padding-left:24px">${prize}</td>
+        <td><span class="badge-pts">${g.pts} pts</span></td>
+        <td><span class="tier-chip ${tier.c}">${tier.l}</span></td>`;
+
+      // Celda de unidades: solo en la primera fila del grupo con rowspan
+      if (isFirst) {
+        html += `<td class="units-cell" rowspan="${g.prizes.length}" style="border-bottom:${isLast?'none':'.5px solid #F2F2F2'}">
+          <span>${g.units}</span>
+          <span class="units-lbl">unidades</span>
+        </td>`;
+      }
+      html += `</tr>`;
+    });
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('premios-wrap').innerHTML = html;
+}
+
+// ─── Fetch con múltiples proxies CORS ───────────────────────────────────────
+async function fetchData(url) {
+  const proxies = [
+    url,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  ];
+  for (const src of proxies) {
+    try {
+      const res = await fetch(src, { mode: 'cors' });
+      if (res.ok) return res;
+    } catch (e) { /* siguiente proxy */ }
+  }
+  throw new Error('No se pudo conectar con Google Sheets. Verifica tu conexión a internet.');
+}
+
+async function loadPremios() {
+  document.getElementById('premios-wrap').innerHTML =
+    '<div class="spin-wrap"><div class="spinner"></div>Cargando premios...</div>';
+
+  const URL_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRGKrlMk9Bggu6Arz8RKPbGO2BwwfaNzqZ6mPvrLxF7-AePfB__GLGr56XCjUNCg/pub?gid=1429232577&single=true&output=csv';
+
+  try {
+    const res  = await fetchData(URL_CSV);
+    const text = await res.text();
+    const rows = text.trim().split('\n').map(line => {
+      const cells = []; let cur = '', inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { inQ = !inQ; continue; }
+        if (c === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+        else cur += c;
+      }
+      cells.push(cur.trim());
+      return cells;
+    });
+    const grupos = buildPremiosFromSheet(rows);
+    renderPremios(grupos);
+  } catch (e) {
+    console.warn('Premios fallback (datos locales):', e.message);
+    renderPremios(GRUPOS_PREMIOS);
+  }
+}
+
+// ─── PUNTAJES ─────────────────────────────────────────────────────────────────
+function renderPuntajes(embajadores) {
+  if (!embajadores.length) {
+    document.getElementById('puntajes-wrap').innerHTML =
+      `<div class="err">No se encontraron datos de embajadores.
+       <button class="refresh-btn" onclick="loadPuntajes()">↻ Reintentar</button></div>`;
+    return;
+  }
+
+  embajadores.sort((a, b) => b.pts - a.pts);
+  const maxPts = embajadores[0].pts || 1;
+  const total  = embajadores.reduce((a, e) => a + e.pts, 0);
+  const avg    = Math.round(total / embajadores.length);
+
+  document.getElementById('p-tot').textContent = embajadores.length;
+  document.getElementById('p-ldr').textContent = embajadores[0].name;
+  document.getElementById('p-avg').innerHTML   = `${avg} <small>pts</small>`;
+  document.getElementById('p-sum').textContent = total.toLocaleString('es-CO');
+
+  // Podio
+  const [g, s, b] = embajadores;
+  const podCard = (e, cls, medal) => e
+    ? `<div class="pc ${cls}">
+        <div class="pc-medal">${medal}</div>
+        <div class="pc-name">${e.name}</div>
+        <div class="pc-pts">${e.pts.toLocaleString('es-CO')}<small> pts</small></div>
+       </div>`
+    : `<div class="pc ${cls}" style="opacity:.2"><div class="pc-medal">${medal}</div><div class="pc-name">—</div></div>`;
+
+  const podium = `<div class="podium">
+    ${podCard(s,'silver','🥈')}
+    ${podCard(g,'gold','🥇')}
+    ${podCard(b,'bronze','🥉')}
+  </div>`;
+
+  // Ranking completo
+  let list = `<div class="search-box">
+    <input type="text" id="search-inp" placeholder="🔍 Buscar embajador..." oninput="filterEmb(this.value)">
+  </div>
+  <div class="ldr-list" id="ldr-list">`;
+
+  embajadores.forEach((e, i) => {
+    const rCls     = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const pct      = Math.round(e.pts / maxPts * 100);
+    const premio   = GRUPOS_PREMIOS.slice().reverse().find(g => g.pts <= e.pts);
+    const siguiente= GRUPOS_PREMIOS.find(g => g.pts > e.pts);
+    const premioTag = premio
+      ? `<span style="font-size:10px;background:#FFF0E0;color:#C85A00;border-radius:4px;padding:1px 7px;margin-left:6px">${premio.pts}pts desbloqueado</span>`
+      : '';
+    const faltaTag = siguiente
+      ? `<span style="font-size:10px;background:#F0F0F0;color:#999;border-radius:4px;padding:1px 7px;margin-left:4px">faltan ${siguiente.pts - e.pts} pts</span>`
+      : `<span style="font-size:10px;background:#E3F6EC;color:#15622C;border-radius:4px;padding:1px 7px;margin-left:4px">¡Máximo!</span>`;
+
+    list += `<div class="ldr" data-name="${e.name.toLowerCase()}">
+      <div class="rank ${rCls}">${i + 1}</div>
+      <div class="ldr-info">
+        <div class="ldr-name">${e.name} ${premioTag}${faltaTag}</div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-lbl">${pct}% del líder</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="pts-num">${e.pts.toLocaleString('es-CO')}<small>pts</small></div>
+    </div>`;
+  });
+  list += '</div>';
+
+  document.getElementById('puntajes-wrap').innerHTML =
+    `<div class="stitle">Top 3</div>${podium}
+     <div class="stitle">Ranking Completo</div>${list}`;
+}
+
+function filterEmb(q) {
+  document.querySelectorAll('#ldr-list .ldr').forEach(el => {
+    el.style.display = el.dataset.name.includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+async function loadPuntajes() {
+  document.getElementById('puntajes-wrap').innerHTML =
+    '<div class="spin-wrap"><div class="spinner"></div>Cargando puntajes...</div>';
+
+  const URL_TSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQRGKrlMk9Bggu6Arz8RKPbGO2BwwfaNzqZ6mPvrLxF7-AePfB__GLGr56XCjUNCg/pub?gid=1497084437&single=true&output=tsv';
+
+  try {
+    const res  = await fetchData(URL_TSV);
+    const text = await res.text();
+
+    // Fila 0: encabezado de meses | Fila 1: subcolumnas + "Total" al final | Fila 2+: datos
+    const rows      = text.trim().split('\n').map(line => line.split('\t').map(c => c.trim()));
+    const headerRow = rows[1] || rows[0] || [];
+    const lastCol   = headerRow.length - 1;
+
+    // Buscar columna "Total" de derecha a izquierda
+    let totalCol = lastCol;
+    for (let i = lastCol; i >= 0; i--) {
+      if ((headerRow[i] || '').toLowerCase().includes('total')) { totalCol = i; break; }
+    }
+
+    const embajadores = [];
+    for (let i = 2; i < rows.length; i++) {
+      const row  = rows[i];
+      const name = (row[0] || '').trim();
+      if (!name || name.length < 2) continue;
+      const low = name.toLowerCase();
+      if (['total','promedio','nombre','embajador','suma'].includes(low)) continue;
+      const pts = parseFloat((row[totalCol] || '').replace(/[^0-9.-]/g, '')) || 0;
+      embajadores.push({ name, pts });
+    }
+
+    if (!embajadores.length) throw new Error('No se encontraron filas de embajadores');
+    renderPuntajes(embajadores);
+
+  } catch (e) {
+    document.getElementById('puntajes-wrap').innerHTML =
+      `<div class="err"><strong>Error al cargar puntajes:</strong> ${e.message}<br>
+       <button class="refresh-btn" onclick="loadPuntajes()">↻ Reintentar</button></div>`;
+  }
+}
+
+// ─── Navegación ───────────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el, i) =>
+    el.classList.toggle('active', (i===0 && t==='premios') || (i===1 && t==='puntajes')));
+  document.getElementById('tab-premios').style.display  = t === 'premios'  ? '' : 'none';
+  document.getElementById('tab-puntajes').style.display = t === 'puntajes' ? '' : 'none';
+}
+
+async function loadAll() {
+  await Promise.all([loadPremios(), loadPuntajes()]);
+  document.getElementById('ts').textContent =
+    'Actualizado: ' + new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+// Auto-refresh cada 5 minutos
+setInterval(loadAll, 5 * 60 * 1000);
+loadAll();
+</script>
+</body>
+</html>
