@@ -465,8 +465,10 @@ function renderPremios(grupos) {
       // Celda de unidades: solo en la primera fila del grupo con rowspan
       if (isFirst) {
         html += `<td class="units-cell" rowspan="${g.prizes.length}" style="border-bottom:${isLast?'none':'.5px solid #F2F2F2'}">
-          <span>${g.units}</span>
-          <span class="units-lbl">unidades</span>
+          ${g.units === 0
+            ? '<span style="background:#FEE2E2;color:#B91C1C;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;font-family:Barlow,sans-serif">AGOTADO</span>'
+            : '<span>' + g.units + '</span><span class="units-lbl">unidades</span>'
+          }
         </td>`;
       }
       html += `</tr>`;
@@ -480,8 +482,8 @@ function renderPremios(grupos) {
 // ─── Fetch desde Apps Script (sin problemas de CORS) ────────────────────────
 async function fetchSheet(sheet) {
   if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
-  const url = `${APPS_SCRIPT_URL}?sheet=${sheet}`;
-  const res = await fetch(url);
+  const url = `${APPS_SCRIPT_URL}?sheet=${sheet}&t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
@@ -532,15 +534,22 @@ async function loadPremios() {
     '<div class="spin-wrap"><div class="spinner"></div>Cargando premios...</div>';
   try {
     if (!APPS_SCRIPT_URL) throw new Error('NO_URL');
-    const data = await fetchSheet('premios');
-    if (!data.grupos || !data.grupos.length) throw new Error('Sin grupos');
+
+    // Fetch directo sin caché
+    const res = await fetch(APPS_SCRIPT_URL + '?sheet=premios&t=' + Date.now());
+    const data = await res.json();
+
+    // Mostrar debug temporal
+    console.log('PREMIOS DATA:', JSON.stringify(data));
+
+    if (!data.grupos || !data.grupos.length) throw new Error('Sin grupos: ' + JSON.stringify(data));
     renderPremios(data.grupos);
   } catch (e) {
     if (e.message === 'NO_URL') {
       showUrlPrompt('premios-wrap');
     } else {
       document.getElementById('premios-wrap').innerHTML =
-        `<div class="err"><strong>Error al cargar premios:</strong> ${e.message}<br>
+        `<div class="err"><strong>Error:</strong> ${e.message}<br>
          <button class="refresh-btn" onclick="loadPremios()">↻ Reintentar</button></div>`;
     }
   }
