@@ -218,19 +218,13 @@ async function loadPremios() {
   document.getElementById('premios-wrap').innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Cargando premios...</div>';
   try {
     const data = await fetchSheet('premios');
-    // Combinar estructura fija con unidades en vivo del script
-    const unidadesPorPts = {};
-    if (data.grupos && data.grupos.length) {
-      data.grupos.forEach(g => {
-        // Usar clave pts+primer premio para distinguir grupos con mismo pts
-        const key = g.pts + '_' + (g.prizes[0] || '');
-        unidadesPorPts[key] = g.units;
-      });
-    }
-    const grupos = ESTRUCTURA.map(e => {
-      const key = e.pts + '_' + (e.prizes[0] || '');
-      return { pts: e.pts, prizes: e.prizes, units: unidadesPorPts[key] !== undefined ? unidadesPorPts[key] : null };
-    });
+    // Mapear por índice: grupo 0 del script = grupo 0 de ESTRUCTURA
+    // Es el método más robusto porque el orden siempre es el mismo
+    const grupos = ESTRUCTURA.map((e, i) => ({
+      pts:    e.pts,
+      prizes: e.prizes,
+      units:  (data.grupos && data.grupos[i] !== undefined) ? data.grupos[i].units : null
+    }));
     renderPremios(grupos);
   } catch(e) {
     // Si falla el fetch, mostrar con unidades null
